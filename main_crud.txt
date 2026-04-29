@@ -1,0 +1,115 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MainApp());
+}
+
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(home: ListUserDataPage());
+  }
+}
+
+class UserModel {
+  int? id;
+  String nama;
+  int umur;
+
+  UserModel(this.id, {required this.nama, required this.umur});
+}
+
+class ListUserDataPage extends StatefulWidget {
+  const ListUserDataPage({super.key});
+
+  @override
+  State<ListUserDataPage> createState() => _ListUserDataPageState();
+}
+
+class _ListUserDataPageState extends State<ListUserDataPage> {
+  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _umurCtrl = TextEditingController();
+
+  List<UserModel> userList = [
+    UserModel(1, nama: "One", umur: 10),
+    UserModel(2, nama: "Two", umur: 20),
+    UserModel(3, nama: "Three", umur: 30),
+  ];
+
+  void _save(int? id, String nama, int umur) {
+    if (id == null) {
+      userList.add(UserModel(userList.length + 1, nama: nama, umur: umur));
+    } else {
+      var user = userList.firstWhere((e) => e.id == id);
+      user.nama = nama;
+      user.umur = umur;
+    }
+    setState(() {});
+    Navigator.pop(context);
+  }
+
+  void _delete(int id) {
+    userList.removeWhere((e) => e.id == id);
+    setState(() {});
+  }
+
+  void _form(int? id) {
+    if (id != null) {
+      var user = userList.firstWhere((e) => e.id == id);
+      _nameCtrl.text = user.nama;
+      _umurCtrl.text = user.umur.toString();
+    } else {
+      _nameCtrl.clear();
+      _umurCtrl.clear();
+    }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: _nameCtrl),
+            TextField(controller: _umurCtrl),
+            ElevatedButton(
+              onPressed: () => _save(
+                id,
+                _nameCtrl.text,
+                int.parse(_umurCtrl.text),
+              ),
+              child: Text(id == null ? "Tambah" : "Update"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("CRUD Local")),
+      body: ListView.builder(
+        itemCount: userList.length,
+        itemBuilder: (_, i) => ListTile(
+          title: Text(userList[i].nama),
+          subtitle: Text("Umur: ${userList[i].umur}"),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(onPressed: () => _form(userList[i].id), icon: const Icon(Icons.edit)),
+              IconButton(onPressed: () => _delete(userList[i].id!), icon: const Icon(Icons.delete)),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _form(null),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
